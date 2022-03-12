@@ -1,1 +1,184 @@
+#include<iostream>
+#include<iomanip>
+#include<cstring>
+#include <string>
+#include <stdio.h>
+using namespace std;
+
+// 一个问题，武士的名称编号应该属于自己而非放在司令部里。
+// 司令部统筹武士数量和总类别。noKind不应该取决去warrnum, 而应该是warrPos.
+
+class Warrior;
+class Command;
+string allkind[5] = {"dragon", "ninja", "iceman", "lion", "wolf"};
+int seq_red[5] = {2, 3, 4, 1, 0};
+int seq_blue[5] = {3, 0, 1, 2, 4};
+int allpower[5] = {};
+int times = 0;
+
+class Warrior
+{
+	friend class Command;
+	private:
+		Command *ptr; // 指向自身阵营
+		int noKind; // 第几种武士
+		int power; // 武力值
+
+	public:
+		string warrnam; // 类型
+		void PrintWarr(); // 打印
+		Warrior(Command *p, int warrPos); // constructor
+};
+
+class Command
+{
+	friend class Warrior;
+	private:
+		int lifenum; // 生命元
+	public:
+	int count[5]; // 每种武士数量
+		int colour; // 阵营
+		int warrnum; // 当下武士编号(一共多少武士)
+		string name[5]; // 武士名称和顺序
+		int powerseq[5]; // 某阵营和输入武力值顺序的映射
+		int warrpower[5]; // 每种武士能量值
+		Warrior *soldier[10000]; 
+		int Produce(int warrPos); // what to return
+		void PrintEnd(); // declaration of the end
+		bool End();
+		bool ended;
+		void initial(int clr, int lfn, int rule[]); // constructor
+};
+
+Warrior::Warrior(Command *p, int warrPos) // 没确定，感觉制造的时候直接赋值就行
+{
+	ptr = p; // 指向阵营
+	noKind = warrPos % 5; // 哪种武士
+}
+
+void Warrior::PrintWarr()
+{
+	string color;
+	if (ptr->colour == 0)
+		color = "red ";
+	else // colour == 1
+		color = "blue ";
+	printf("%03d ", times);
+	cout << color << warrnam << " ";
+	printf("%d born with strength %d,", ptr->warrnum, power); 
+	cout << ptr->count[noKind] << " " << warrnam << " in " << color << "headquarter" << endl;
+}
+
+void Command::initial(int clr, int lfn, int rule[]) // rule_red, rule_blue
+{
+	memset(count, 0, sizeof(count));
+	colour = clr;
+	lifenum = lfn;
+	warrnum = 0;
+	ended = false;
+	for (int i = 0; i < 5; i++)
+		warrpower[i] = allpower[rule[i]];
+	for (int i = 0; i < 5; i++)
+		name[i] = allkind[rule[i]];
+	
+}
+
+bool Command::End()
+{
+	return ended; // 本质是由produce决定的
+}
+
+int Command::Produce(int warrPos) // “位置计数”
+{
+	int pos = warrPos % 5;
+	if (lifenum < warrpower[pos])
+		return -1;
+	if (ended)
+		return 0;
+	else
+	{
+		Warrior temp(this, warrPos); // 武士
+		warrnum++; // 武士总量++
+		count[pos]++; // 这种武士数量++
+		temp.warrnam = name[pos]; // 武士名称
+		temp.power = warrpower[pos]; // 武力值
+		lifenum -= warrpower[pos]; // 生命元减少
+		soldier[warrnum] = &temp; // 放进数组
+		temp.PrintWarr();
+		return 1;
+	}
+}
+
+void Command::PrintEnd() // 010 red headquarter stops making warriors
+{
+	printf("%03d ", times);
+	if (colour == 0)
+		printf("red headquarter stops making warriors\n");
+	else
+		printf("blue headquarter stops making warriors\n");
+	ended = true; 
+}
+
+int main()
+{
+	int CASE;
+	cin >> CASE;
+	for (int c = 1; c <= CASE; c++)
+	{
+		cout << "Case:" << c << endl;
+		int totalLife = 0;
+		cin >> totalLife; // 生命值总量
+		for (int i = 0; i < 5; i++)
+			cin >> allpower[i]; 
+		Command RED;
+		RED.initial(0, totalLife, seq_red);
+		Command BLUE;
+		BLUE.initial(1, totalLife, seq_blue); // Headquarters
+		
+		times = 0; // timing
+		int warrPosR = 0, warrPosB = 0, flagProR = 0, flagProB = 0;
+		while (RED.End() == 0 || BLUE.End() == 0) // 没有结束
+		{
+			if (!RED.End()) // 红色未结束
+			{
+				int flag = 0;
+				flag = RED.Produce(warrPosR);
+				while (flag != 1)
+				{
+					warrPosR++;
+					flagProR++; 
+					flag = RED.Produce(warrPosR);
+					if (flagProR == 5)
+					{
+						RED.PrintEnd();
+						break;
+					}
+				}
+				if (flag == 1)
+					warrPosR++;
+			}
+
+			if (BLUE.End() == 0) // 蓝色未结束
+			{
+				int flag = 0;
+				flag = BLUE.Produce(warrPosB);
+				while (flag != 1)
+				{
+					warrPosB++; 
+					flagProB++;
+					flag = BLUE.Produce(warrPosB); 
+					if (flagProB == 5)
+					{
+						BLUE.PrintEnd();
+						break;
+					}
+				}
+				if (flag == 1)
+					warrPosB++;
+			}
+			times++;
+		}
+	}
+	return 0;
+}
 
