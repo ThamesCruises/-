@@ -136,12 +136,13 @@ int main()
 		BLUE.initial(1, totalLife, seq_blue); // Headquarters
 		
 		times = 0; // timing
-		int warrPosR = 0, warrPosB = 0, flagProR = 0, flagProB = 0;
+		int warrPosR = 0, warrPosB = 0;
 		while (RED.End() == 0 || BLUE.End() == 0) // 没有结束
 		{
 			if (!RED.End()) // 红色未结束
 			{
 				int flag = 0;
+				flagProR = 0;
 				flag = RED.Produce(warrPosR);
 				while (flag != 1)
 				{
@@ -161,6 +162,7 @@ int main()
 			if (BLUE.End() == 0) // 蓝色未结束
 			{
 				int flag = 0;
+				flagProB = 0;
 				flag = BLUE.Produce(warrPosB);
 				while (flag != 1)
 				{
